@@ -11,7 +11,7 @@ docker rm jenkins postgres 2>/dev/null
 docker run -d -p 8080:8080 -p 50000:50000 --network jenkins-network --name jenkins jenkins/jenkins:lts
 
 # Step 2: Start PostgreSQL container on the same network
-docker run -d --network jenkins-network --name postgres -e POSTGRES_PASSWORD=mysecretpassword -p 5432:5432 postgres
+docker run -d --network jenkins-network --name postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres
 
 # Function to wait for Jenkins to be fully up and running
 wait_for_jenkins() {

@@ -5,7 +5,7 @@ import pytest
 db_params = {
     'dbname': 'postgres',
     'user': 'postgres',
-    'password': 'mysecretpassword',
+    'password': 'postgres',
     'host': 'postgres'
 }
 
@@ -33,14 +33,21 @@ def test_basic_query(db_connection):
 def test_create_table(db_cursor, db_connection):
     db_cursor.execute("CREATE TABLE IF NOT EXISTS test_table (id serial PRIMARY KEY, name varchar (50) NOT NULL);")
     db_connection.commit()
+    db_cursor.execute("SELECT to_regclass('public.test_table');")
+    assert db_cursor.fetchone()[0] == 'test_table', "Table was not created successfully."
 
 def test_alter_table(db_cursor, db_connection):
     db_cursor.execute("ALTER TABLE test_table ADD COLUMN age int;")
     db_connection.commit()
+    db_cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name='test_table' AND column_name='age';")
+    assert db_cursor.fetchone()[0] == 'age', "Column 'age' was not added successfully."
 
 def test_insert_data(db_cursor, db_connection):
     db_cursor.execute("INSERT INTO test_table (name, age) VALUES ('Test Name', 30);")
     db_connection.commit()
+    db_cursor.execute("SELECT name, age FROM test_table WHERE name='Test Name' AND age=30;")
+    result = db_cursor.fetchone()
+    assert result == ('Test Name', 30), "Data was not inserted successfully."
 
 def test_select_data(db_cursor):
     db_cursor.execute("SELECT * FROM test_table WHERE name = 'Test Name';")
@@ -68,3 +75,6 @@ def test_delete_data(db_cursor, db_connection):
 def test_drop_table(db_cursor, db_connection):
     db_cursor.execute("DROP TABLE test_table;")
     db_connection.commit()
+    db_cursor.execute("SELECT to_regclass('public.test_table');")
+    assert db_cursor.fetchone()[0] is None, "Table was not dropped successfully."
+
